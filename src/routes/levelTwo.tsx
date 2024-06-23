@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import {
   Card,
   CardContent,
@@ -26,55 +26,107 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  email: z.string().email({ message: "Invalid email address" }),
+const items = [
+  {
+    id: "javascript",
+    label: "JavaScript",
+  },
+  {
+    id: "css",
+    label: "CSS",
+  },
+  {
+    id: "python",
+    label: "Python",
+  },
+  {
+    id: "c++",
+    label: "C++",
+  },
+  {
+    id: "typescript",
+    label: "TypeScript",
+  },
+  {
+    id: "none",
+    label: "None",
+  },
+] as const;
+
+const FormSchema = z.object({
+  name: z
+    .string()
+    .min(3, { message: "Name must be at least 3 characters" })
+    .max(50, { message: "Name must be less than 50 characters" }),
+  email: z
+    .string()
+    .email({ message: "Please enter a valid email address" })
+    .min(3, { message: "Email must be at least 3 characters" })
+    .max(50, { message: "Email must be less than 50 characters" }),
   phoneNumber: z
     .string()
     .min(10, { message: "Phone number must be at least 10 characters" }),
-  position: z.string({ required_error: "Please select a position" }),
+  position: z.string().min(3, { message: "Position must be selected" }),
   experience: z
     .number()
-    .min(0, { message: "Experience must be at least 0" })
+    .min(0, { message: "Experience must be greater than 0" })
+    .max(50, { message: "Experience must be less than 50" })
     .optional(),
-  portfolio: z.string().url({ message: "Invalid portfolio URL" }).optional(),
+  portfolio: z
+    .string()
+    .url()
+    .min(3, { message: "Portfolio must be at least 3 characters" })
+    .max(50, { message: "Portfolio must be less than 50 characters" })
+    .optional(),
   managementExperience: z
     .number()
-    .min(1, { message: "Management experience must be at least 1" })
+    .min(0, { message: "Management Experience must be greater than 0" })
+    .max(50, { message: "Management Experience must be less than 50" })
     .optional(),
-  // additionalSkill: z.boolean().default(false).optional(),
-  // dateOfInterview: z.date({ required_error: "Date of interview is required" }),
+  additionalSkills: z
+    .array(z.string())
+    .refine((value) => value.some((item) => item), {
+      message: "You have to select at least one item.",
+    }),
 });
 
 function LevelTwo() {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
     defaultValues: {
       name: "",
       email: "",
       phoneNumber: "",
       position: "",
-      experience: 0,
-      portfolio: "",
-      managementExperience: 0,
-      // additionalSkill: false, form
-      // dateOfInterview: new Date(),
+      experience: undefined,
+      portfolio: undefined,
+      managementExperience: undefined,
+      additionalSkills: ["none"],
     },
   });
 
   const [selectedPosition, setSelectedPosition] = useState("");
+  const [formData, setFormData] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("Form submitted with values:", values);
-    alert(JSON.stringify(values, null, 2));
+  function onSubmit(values: z.infer<typeof FormSchema>) {
+    setFormData(values as any);
+    setIsDialogOpen(true);
   }
 
   return (
-    <div className="flex justify-center items-center h-screen">
-      <Card className="w-1/2 gap-4">
+    <div className="flex sm:justify-center sm:items-center">
+      <Card className="lg:w-1/2 lg:my-auto gap-4 w-full mx-auto">
         <CardHeader>
-          <CardTitle>Job Interview form</CardTitle>
+          <CardTitle className="md:text-xl">Job Interview form</CardTitle>
           <CardDescription>
             Please fill in the form below to apply for the job.
           </CardDescription>
@@ -89,11 +141,7 @@ function LevelTwo() {
                   <FormItem>
                     <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Enter your name"
-                        type="text"
-                        {...field}
-                      />
+                      <Input placeholder="Enter your name" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -107,11 +155,7 @@ function LevelTwo() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Enter your email"
-                        type="email"
-                        {...field}
-                      />
+                      <Input placeholder="Enter your email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -125,11 +169,7 @@ function LevelTwo() {
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Enter your Phone Number"
-                        type="text"
-                        {...field}
-                      />
+                      <Input placeholder="Enter your Phone Number" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -237,7 +277,6 @@ function LevelTwo() {
                       <FormControl>
                         <Input
                           placeholder="Enter your management experience"
-                          type="number"
                           min={1}
                           {...field}
                           onChange={(e) =>
@@ -250,6 +289,54 @@ function LevelTwo() {
                   )}
                 />
               )}
+              <FormField
+                control={form.control}
+                name="additionalSkills"
+                render={() => (
+                  <FormItem>
+                    <div className="mb-4">
+                      <FormLabel>Additional Skills</FormLabel>
+                    </div>
+                    {items.map((item) => (
+                      <FormField
+                        key={item.id}
+                        control={form.control}
+                        name="additionalSkills"
+                        render={({ field }) => {
+                          return (
+                            <FormItem
+                              key={item.id}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(item.id)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([
+                                          ...field.value,
+                                          item.id,
+                                        ])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value: string) => value !== item.id
+                                          )
+                                        );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="text-sm font-normal">
+                                {item.label}
+                              </FormLabel>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    ))}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <div className="flex justify-center mt-4">
                 <Button type="submit" className="flex w-1/2">
                   Submit
@@ -259,6 +346,26 @@ function LevelTwo() {
           </Form>
         </CardContent>
       </Card>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <Button className="hidden">Open Dialog</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogTitle>Form Data</DialogTitle>
+          {formData && (
+            <pre className="whitespace-pre-wrap break-words">
+              <p>Name : {formData.name}</p>
+              <p>Email : {formData.email}</p>
+              <p>Position : {formData.position}</p>
+              <p>Experience : {formData.experience}</p>
+              <p>Portfolio URL : {formData.portfolio}</p>
+              <p>Additional Skills : {formData.additionalSkills}</p>
+              <p>Management Experience : {formData.managementExperience}</p>
+            </pre>
+          )}
+          <Button onClick={() => setIsDialogOpen(false)}>Close</Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

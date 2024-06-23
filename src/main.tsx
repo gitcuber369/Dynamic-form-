@@ -5,7 +5,6 @@ import "./index.css";
 import App from "./App";
 import LevelOne from "./routes/levelOne";
 import LevelTwo from "./routes/levelTwo";
-import LevelThree from "./routes/levelThree";
 
 const router = createBrowserRouter([
   {
@@ -19,10 +18,6 @@ const router = createBrowserRouter([
   {
     path: "/level-2",
     element: <LevelTwo />,
-  },
-  {
-    path: "/level-3",
-    element: <LevelThree />,
   },
 ]);
 

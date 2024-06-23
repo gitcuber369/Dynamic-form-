@@ -1,4 +1,3 @@
-import React from "react";
 import { Button } from "./components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -19,11 +18,6 @@ export default function App() {
             <Button>
               <Link className="w-full" to="/level-2">
                 Level 2
-              </Link>
-            </Button>
-            <Button>
-              <Link className="w-full" to="/level-3">
-                Level 3
               </Link>
             </Button>
           </nav>

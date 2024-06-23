@@ -21,21 +21,21 @@ import {
 } from "@/components/ui/dialog";
 
 function LevelOne() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [age, setAge] = useState("");
-  const [attendingWithGuest, setAttendingWithGuest] = useState("");
-  const [guestName, setGuestName] = useState("");
-  const [showInput, setShowInput] = useState(false);
-  const [showPopup, setShowPopup] = useState(false);
-  const [formData, setFormData] = useState({});
+  const [name, setName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [age, setAge] = useState<string>("");
+  const [attendingWithGuest, setAttendingWithGuest] = useState<string>("");
+  const [guestName, setGuestName] = useState<string>("");
+  const [showInput, setShowInput] = useState<boolean>(false);
+  const [showPopup, setShowPopup] = useState<boolean>(false);
+  const [formData, setFormData] = useState<any>({});
 
-  const handleRadioChange = (value: any) => {
+  const handleRadioChange = (value: string) => {
     setAttendingWithGuest(value);
     setShowInput(value === "yes");
   };
 
-  const handleSubmit = (event: any) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = {
       name,
