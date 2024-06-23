@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 import {
   Card,
   CardContent,
@@ -32,6 +32,7 @@ import {
   DialogTrigger,
   DialogContent,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 const items = [
@@ -82,7 +83,7 @@ const FormSchema = z.object({
     .optional(),
   portfolio: z
     .string()
-    .url()
+    .url({ message: "Please enter a valid URL" })
     .min(3, { message: "Portfolio must be at least 3 characters" })
     .max(50, { message: "Portfolio must be less than 50 characters" })
     .optional(),
@@ -93,13 +94,15 @@ const FormSchema = z.object({
     .optional(),
   additionalSkills: z
     .array(z.string())
-    .refine((value) => value.some((item) => item), {
+    .refine((value) => value.some((item) => item !== "none"), {
       message: "You have to select at least one item.",
     }),
 });
 
+type FormValues = z.infer<typeof FormSchema>;
+
 function LevelTwo() {
-  const form = useForm<z.infer<typeof FormSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       name: "",
@@ -114,13 +117,13 @@ function LevelTwo() {
   });
 
   const [selectedPosition, setSelectedPosition] = useState("");
-  const [formData, setFormData] = useState(null);
+  const [formData, setFormData] = useState<FormValues | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  function onSubmit(values: z.infer<typeof FormSchema>) {
-    setFormData(values as any);
+  const onSubmit: SubmitHandler<FormValues> = (values) => {
+    setFormData(values);
     setIsDialogOpen(true);
-  }
+  };
 
   return (
     <div className="flex sm:justify-center sm:items-center">
@@ -319,13 +322,13 @@ function LevelTwo() {
                                         ])
                                       : field.onChange(
                                           field.value?.filter(
-                                            (value: string) => value !== item.id
+                                            (value) => value !== item.id
                                           )
                                         );
                                   }}
                                 />
                               </FormControl>
-                              <FormLabel className="text-sm font-normal">
+                              <FormLabel className="font-normal">
                                 {item.label}
                               </FormLabel>
                             </FormItem>
@@ -337,35 +340,24 @@ function LevelTwo() {
                   </FormItem>
                 )}
               />
-              <div className="flex justify-center mt-4">
-                <Button type="submit" className="flex w-1/2">
-                  Submit
-                </Button>
+              <div className="flex justify-center">
+                <Button type="submit">Submit</Button>
               </div>
             </form>
           </Form>
         </CardContent>
       </Card>
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button className="hidden">Open Dialog</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogTitle>Form Data</DialogTitle>
-          {formData && (
-            <pre className="whitespace-pre-wrap break-words">
-              <p>Name : {formData.name}</p>
-              <p>Email : {formData.email}</p>
-              <p>Position : {formData.position}</p>
-              <p>Experience : {formData.experience}</p>
-              <p>Portfolio URL : {formData.portfolio}</p>
-              <p>Additional Skills : {formData.additionalSkills}</p>
-              <p>Management Experience : {formData.managementExperience}</p>
-            </pre>
-          )}
-          <Button onClick={() => setIsDialogOpen(false)}>Close</Button>
-        </DialogContent>
-      </Dialog>
+      {formData && (
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger />
+          <DialogContent>
+            <DialogTitle>Submitted Data</DialogTitle>
+            <DialogDescription>
+              <pre>{JSON.stringify(formData, null, 2)}</pre>
+            </DialogDescription>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
